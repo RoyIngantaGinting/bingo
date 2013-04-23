@@ -1,0 +1,6 @@
+test*.js
+.project
+manifest.yml
+.afignore
+.settings
+*.log

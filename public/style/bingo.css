@@ -1,0 +1,85 @@
+/*HTML entity*/
+a{ text-decoration: none; }
+body{ margin: .1em; background: #f0f0ff; }
+input, label { display: block; }
+
+/*Mix Selector*/
+#bingo-number li { 
+	float: left;
+	width: 85px;
+	height: 85px;
+	text-align: center;
+	font-size: 3em;
+}
+input.text{ width: 95%; padding: .4em; }
+
+/*Selector by ID*/
+#bingo-number{
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	width: 450px;
+}
+#listing-game{
+	list-style-type: none;
+	margin: .4em;
+	padding: .1em;
+	width: 96%;
+	font-size: 18px;
+	font-weight: bold;
+}
+#listing-nav{
+	padding: .1em; font-size: 12px;
+}
+#main-kontainer{
+	margin: .1em;
+	padding: .1em;
+	box-shadow: 0 0 8px #D0D0D0;
+	-webkit-box-shadow: 0 0 8px #D0D0D0;
+	-moz-box-shadow: 0 0 8px #D0D0D0;
+}
+
+/*Selector by class*/
+.achievement{ text-align: center; background: green; }
+.bggreen{ background: green; }
+.bgred{ background: red; }
+.box{
+	width: 3em;
+	padding: .1em .2em;
+	margin: .1em;
+	border: solid 1px #ffffff;
+	display: inline;
+	text-align: center;
+	border-radius: 5px;
+}
+.button{ margin: .2em .1em; width: 99%; }
+.center{ margin-left: auto; margin-right: auto; }
+.clear{ clear: both; }
+.clickable{
+	cursor: pointer;
+}
+.error-msg{ color: red; }
+.inline{ display: inline; }
+.kontainer{ width: 280px; border-radius: 15px; }
+.label-info{ padding: .2em; font-size: 1em; }
+.label-score{ margin: .1em; width: 3em; background: green; }
+.left{ float: left; }
+.list-game{ padding: .2em; }
+.listing-game{
+	width: 350px;
+	border-radius: 15px;
+	border: solid 1px #C0C0C0;
+}
+.menu-awal{
+	margin-right: 0;
+	margin-left: auto;
+	width: 250px;
+}
+.message{
+	padding: .1em;
+	font-size: 12pt;
+	font-weight: bold;
+	color: #aaff00;
+}
+.ui-menu { width: 250px; }
+.widget-title{ text-align: center; }

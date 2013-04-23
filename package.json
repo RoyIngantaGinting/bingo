@@ -1,0 +1,14 @@
+{
+"name" : "bingo",
+"author" : "Roy Inganta Ginting <if09062@gmail.com>",
+"version": "1.0.0",
+"description": "Guess number game",
+"dependencies" : { 
+	"express": "",
+	"mongodb": "",
+	"passport": "",
+	"pasport-local": "",
+	"sha1" : "",
+	"socket.io" : ""
+	}
+}

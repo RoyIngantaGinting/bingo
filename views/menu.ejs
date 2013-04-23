@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Bingo</title>
+	<link rel="stylesheet" href="<%= server %>style/jquery-ui.css">
+	<link rel="stylesheet" href="<%= server %>style/bingo.css">
+	<script src="<%= server %>js/jquery.js"></script>
+	<script src="<%= server %>socket.io/socket.io.js"></script>
+	<script src="<%= server %>js/jquery-ui.js"></script>
+	<script src="<%= server %>js/util.js"></script>
+	<script>
+		const NUMBEROFPLAYER = 2;
+		const TOTALSCORE = 5;
+		const TOTALBINGONUMBER = 25;
+		var bingoData = {}
+			,socket = {}
+			,gameBingo = {};
+		
+		var game = {
+			baseUrl: '<%= server %>',
+			page: 1,
+			updateFlag: 0,
+			interval: 3000,
+
+			updateList: function(){
+				var url = this.baseUrl + 'list/' + game.page;
+				
+				$.get(url, function(data){
+					try{
+						view.empty();
+						view.update(data);
+					} catch (err){ console.log('update error', data); }
+				});
+			},
+			startUpdate: function(){
+				this.updateList();
+				this.updateFlag = setInterval(function(){ game.updateList(); }, this.interval);
+			},
+			stopUpdate: function(){
+				clearInterval(this.updateFlag);
+			},
+			create: function(){
+				
+			},
+			join: function(gid){
+				var url = this.baseUrl + 'join/' + gid;
+				
+				this.stopUpdate();
+				$.get(url, function(data){
+					try {
+						var jalur = data.gid + '-' + data.path;
+						bingoData = data.bingo;
+						gameBingo.status = 'waiting';
+						gameBingo.turn = 1;
+						bingoView.resetScore();
+						bingoView.resetNumberLabel();
+						bingoView.setBingoNumber(bingoData.values);
+						bingoView.setStatus('Waiting for game to ready');
+						$( "#bingo-page" ).dialog( "open" );
+						
+						setUpSocket(jalur);
+						socket.emit('join', jalur);
+					} catch (err){ console.log('join error', data); }
+				});
+			}
+		};
+		var view = {
+			selector: '#listing-game',
+			defaultEntry: "<li class=\"ui-widget-content ui-corner-all list-game\">No Game available. Please Create one</li>",
+			templateEntry: "<li class=\"ui-widget-content ui-corner-all list-game\"><button onclick=\"game.join('{gid}')\" class=\"button ui-button ui-widget ui-state-default\">{name}</button></li>",
+			
+			decorateListingNav: function(){
+				$( "#start" ).button({ text: false, icons: { primary: "ui-icon-seek-start" }});
+				$( "#prev" ).button({ text: false, icons: { primary: "ui-icon-seek-prev" }});
+				$( "#next" ).button({ text: false, icons: { primary: "ui-icon-seek-next" }});
+				$( "#goto" ).button({ text: false, icons: { primary: "ui-icon-search" }});
+			},
+			empty: function(){ $(this.selector).empty(); },
+			setDefault: function(){ $(this.selector).append(this.defaultEntry); },
+			update: function(data){
+				if (data.total > 0){
+					var i = 0
+						, list = "";
+
+					for (;i<data.total; i++){
+						list += this.templateEntry.replace("{gid}", data.list[i].gid).replace("{name}", data.list[i].name);
+					}
+					$(this.selector).append(list);
+				} else {
+					this.setDefault();
+				}
+			}
+		};
+		var bingoView = {
+			numberLabel: '#btn-',
+			defaultClass: "clickable ui-state-default ui-corner-all",
+			selector: "#bingo-page",
+			scoreLabel: ["#ylbl-", "#flbl-"],
+			onIcon: {primary: "ui-icon-circle-check"},
+			offIcon: {secondary: "ui-icon-circle-minus"},
+			
+			crossValue: function(index){
+				$(this.numberLabel + index)
+					.removeClass('clickable')
+					.attr("style", "background: #FAFAFA")
+					.text('')
+					.unbind('click');
+			},
+			resetNumberLabel: function(){
+				var i = 0;
+				
+				for (;i<=TOTALBINGONUMBER; i++){
+					$(this.numberLabel + i)
+						.removeAttr('style')
+						.removeAttr('class')
+						.addClass("clickable ui-state-default ui-corner-all");
+				}
+			},
+			setTurn: function(){
+				if (gameBingo.turn == gameBingo.current){
+					this.setStatus('Your turn');
+				} else {
+					this.setStatus("Foe's turn");
+				}
+			},
+			setStatus: function(text){
+				$(this.selector).dialog("option", "title", text);
+			},
+			registerAllButton: function(callback){
+				var i = 0
+					,number = 0;
+				
+				for (;i<TOTALBINGONUMBER; i++){
+					$(this.numberLabel + (i+1)).bind('click', function(btn){
+						var selector = this.id.split('-');
+						callback(selector[1]);
+					});
+				}
+			},
+			unregButton: function(index){
+				$(this.numberLabel + index).unbind('click');
+			},
+			unregAllButton: function(){
+				var i = 1;
+				
+				for (;i<=TOTALBINGONUMBER; i++){
+					this.unregButton(i);
+				}
+			},
+			resetScore: function(){
+				var i = 0, j = 0;
+				
+				for (;i<NUMBEROFPLAYER; i++){
+					for (j=0; j<TOTALSCORE; j++){
+						$(this.scoreLabel[i] + j).addClass("bgred");
+					}
+				}
+			},
+			setBingoNumber: function(values){
+				var i = 0;
+				
+				for (;i<TOTALBINGONUMBER; i++){
+					if (values[i] <= 0 || values[i] > TOTALBINGONUMBER){
+						this.crossValue(i+1);
+					} else {
+						$(this.numberLabel + (i+1)).text(values[i]);
+					}
+				}
+			},
+			setIndividualScore: function(player, score){
+				var i = 0;
+				
+				for (;i<score; i++){
+					$(this.scoreLabel[player] + i)
+						.removeClass("bgred")
+						.addClass("bggreen");
+				}
+			},
+			setScore: function(scores){
+				var j = 0, i = 0;
+				
+				for (;i<NUMBEROFPLAYER; i++){
+					for (j=0; j<scores[i]; j++){
+						$(this.scoreLabel[i] + j)
+							.removeClass("bgred")
+							.addClass("bggreen");
+					}
+				}
+			}
+		};
+		
+		function setUpSocket(jalur){
+			socket = io.connect(game.baseUrl);
+			socket.on('start-'+jalur, function(msg){
+				var msgObject = JSON.parse(msg);
+				
+				gameBingo.current = msgObject.current;
+				gameBingo.status = 'playing';
+				bingoView.setTurn();
+				bingoView.registerAllButton(function(index){
+					if (gameBingo.turn == gameBingo.current){
+						var number = bingoData.values[index - 1];
+						bingoView.crossValue(index);
+						socket.emit('update', number);
+					}
+				});
+			});
+			socket.on('update-'+jalur, function(msg){
+				var msgObject = JSON.parse(msg)
+					,scores = [msgObject.lines, msgObject.score];
+				
+				gameBingo.current = msgObject.current;
+				gameBingo.lines = msgObject.lines;
+				gameBingo.values = msgObject.values;
+				bingoView.setTurn();
+				bingoView.setBingoNumber(gameBingo.values);
+				bingoView.setScore(scores);
+			});
+			socket.on('end-' + jalur, function(msg){
+				var msgObject = JSON.parse(msg);
+				
+				if (gameBingo.turn == msgObject.winner){
+					bingoView.setStatus('You win');
+				} else {
+					bingoView.setStatus('You lose');
+				}
+				bingoView.unregAllButton();
+				gameBingo.status = 'end';
+			});
+		}
+		
+		$(document).ready(function(){
+			$('.button').button();
+			$( "#menu" ).menu({ position: { my: "right bottom+130", at: "right" } });
+			$( "#chpasswd-dialog" ).dialog({
+				autoOpen: false,
+				modal: true,
+				width: 350
+			});
+			$( "#bingo-page" ).dialog({
+				autoOpen: false,
+				modal: true,
+				width: 470,
+				beforeClose: function(){
+					if (gameBingo.status != 'end'){
+						var flag = confirm("The game is still running. Are you sure want to quit?");
+						if (flag){
+							try{
+								socket.emit('quit', '');
+							} finally {
+								game.startUpdate();
+							}
+						}
+						return flag;
+					} else {
+						game.startUpdate();
+					}
+				}
+			});
+			$( "#chpasswd-btn" ).click(function(){
+				$( "#chpasswd-dialog" ).dialog( "open" );
+			});
+			$( "#create-game" ).click(function(){
+				$.get('/create', function(data){
+					try {
+						var jalur = data.gid + '-' + data.path
+							,msgObject;
+						
+						game.stopUpdate();
+						view.empty();
+						bingoData = data.bingo;
+						bingoView.resetScore();
+						bingoView.resetNumberLabel();
+						bingoView.setBingoNumber(bingoData.values);
+						bingoView.setStatus("Waiting for another player");
+						
+						gameBingo.status = 'waiting';
+						gameBingo.turn = 0;
+						$( "#bingo-page" ).dialog( "open" );
+						
+						setUpSocket(jalur);
+						socket.emit('create', jalur);
+					} catch (err){ console.log('create error', JSON.stringify(err)); }
+				});
+			});
+			view.decorateListingNav();
+			game.startUpdate();
+			bingoView.resetScore();
+		});
+	</script>
+</head>
+<body>
+	<ul id="menu" class="menu-awal">
+		<li>
+			<a href="#">Hello, <%= name %></a>
+			<ul>
+				<li><a href="/logout"><button class="button">Logout</button></a></li>
+				<li><button id="chpasswd-btn" class="button">Change Password</button></li>
+			</ul>
+		</li>
+	</ul>
+	<div class="listing-game">
+		<button id="create-game" class="button">Create a new bingo</button>
+		<div id="listing-nav" class="ui-widget-header ui-corner-all">
+			<button id="start">start</button>
+			<button id="prev">previous</button>
+			<button id="next">next</button>
+			<label class="inline">page</label>
+			<input type="text" class="inline"></input>
+			<button id="goto">Go to</button>
+		</div>
+		<ul id="listing-game"></ul>
+	</div>
+	<div id="chpasswd-dialog" title="Change Password">
+		<fieldset class="kontainer">
+			<div id="message" class="error-msg"></div>
+			<form method="post" action="/password">
+				<label for="opassword">Old Password</label>
+				<input type="password" id="opassword" name="opassword" class="text ui-widget-content ui-corner-all"/>
+				<label for="npassword">New Password</label>
+				<input type="password" id="npassword" name="npassword" class="text ui-widget-content ui-corner-all">
+				<label for="cpassword">Confirm Password</label>
+				<input type="password" id="cpassword" name="cpassword" class="text ui-widget-content ui-corner-all">
+				<button id="cpasswd-btn" class="button" >Change</button>
+			</form>
+		</fieldset>
+	</div>
+	<div id="bingo-page" title="Lapet">
+		<ul id="bingo-number">
+			<li id="btn-1" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-2" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-3" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-4" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-5" class="clickable ui-state-default ui-corner-all">1</li>
+			
+			<li id="btn-6" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-7" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-8" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-9" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-10" class="clickable ui-state-default ui-corner-all">1</li>
+			
+			<li id="btn-11" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-12" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-13" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-14" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-15" class="clickable ui-state-default ui-corner-all">1</li>
+			
+			<li id="btn-16" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-17" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-18" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-19" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-20" class="clickable ui-state-default ui-corner-all">1</li>
+			
+			<li id="btn-21" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-22" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-23" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-24" class="clickable ui-state-default ui-corner-all">1</li>
+			<li id="btn-25" class="clickable ui-state-default ui-corner-all">1</li>
+		</ul>
+		<div class="clear"></div>
+		<div id="info-bingo">
+			<div id="your-label" class="ui-state-default ui-corner-all label-info">
+				<span class="left">Yours:</span>
+				<div id="ylbl-0" class="left box">B</div>
+				<div id="ylbl-1" class="left box">I</div>
+				<div id="ylbl-2" class="left box">N</div>
+				<div id="ylbl-3" class="left box">G</div>
+				<div id="ylbl-4" class="left box">O</div>
+				<div style="clear: both;"></div>
+			</div>
+			<div id="foo-label" class="ui-state-default ui-corner-all label-info">
+				<span class="left">Foe's:</span>
+				<div id="flbl-0" class="left box">B</div>
+				<div id="flbl-1" class="left box">I</div>
+				<div id="flbl-2" class="left box">N</div>
+				<div id="flbl-3" class="left box">G</div>
+				<div id="flbl-4" class="left box">O</div>
+				<div style="clear: both;"></div>
+			</div>
+		</div>
+	</div>
+</body>
+</head>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Bingo</title>
+	<link rel="stylesheet" href="<%= server %>/style/jquery.mobile-1.2.0.min.css">
+	<script src="<%= server %>/socket.io/socket.io.js"></script>
+	<script src="<%= server %>/js/jquery.js"></script>
+	<script src="<%= server %>/js/jquery.mobile-1.2.0.min.js"></script>
+	<script src="<%= server %>/js/util.js"></script>
+	<script src="<%= server %>/js/specification.js"></script>
+	<script src="<%= server %>/js/kontainer.js"></script>
+</head>
+<body>
+	<div data-role="page" id="bingo">
+		<div data-role="header">
+			<h2>Turn: <span id="turnLabel">Waiting</span></h2>
+		</div>
+		
+		<div data-role="content">
+			<div class="ui-grid-d">
+				<div  class="ui-block-a" id="kontainer-btn-1"><button class="clickable" id="btn-1">1</button></div>
+				<div  class="ui-block-b" id="kontainer-btn-2"><button class="clickable" id="btn-2">2</button></div>
+				<div  class="ui-block-c" id="kontainer-btn-3"><button class="clickable" id="btn-3">3</button></div>
+				<div  class="ui-block-d" id="kontainer-btn-4"><button class="clickable" id="btn-4">4</button></div>
+				<div  class="ui-block-e" id="kontainer-btn-5"><button class="clickable" id="btn-5">5</button></div>
+				
+				<div  class="ui-block-a" id="kontainer-btn-6"><button class="clickable" id="btn-6">6</button></div>
+				<div  class="ui-block-b" id="kontainer-btn-7"><button class="clickable" id="btn-7">7</button></div>
+				<div  class="ui-block-c" id="kontainer-btn-8"><button class="clickable" id="btn-8">8</button></div>
+				<div  class="ui-block-d" id="kontainer-btn-9"><button class="clickable" id="btn-9">9</button></div>
+				<div  class="ui-block-e" id="kontainer-btn-10"><button class="clickable" id="btn-10">10</button></div>
+				
+				<div  class="ui-block-a" id="kontainer-btn-11"><button class="clickable" id="btn-11">11</button></div>
+				<div  class="ui-block-b" id="kontainer-btn-12"><button class="clickable" id="btn-12">12</button></div>
+				<div  class="ui-block-c" id="kontainer-btn-13"><button class="clickable" id="btn-13">13</button></div>
+				<div  class="ui-block-d" id="kontainer-btn-14"><button class="clickable" id="btn-14">14</button></div>
+				<div  class="ui-block-e" id="kontainer-btn-15"><button class="clickable" id="btn-15">15</button></div>
+				
+				<div  class="ui-block-a" id="kontainer-btn-16"><button class="clickable" id="btn-16">16</button></div>
+				<div  class="ui-block-b" id="kontainer-btn-17"><button class="clickable" id="btn-17">17</button></div>
+				<div  class="ui-block-c" id="kontainer-btn-18"><button class="clickable" id="btn-18">18</button></div>
+				<div  class="ui-block-d" id="kontainer-btn-19"><button class="clickable" id="btn-19">19</button></div>
+				<div  class="ui-block-e" id="kontainer-btn-20"><button class="clickable" id="btn-20">20</button></div>
+				
+				<div  class="ui-block-a" id="kontainer-btn-21"><button class="clickable" id="btn-21">21</button></div>
+				<div  class="ui-block-b" id="kontainer-btn-22"><button class="clickable" id="btn-22">22</button></div>
+				<div  class="ui-block-c" id="kontainer-btn-23"><button class="clickable" id="btn-23">23</button></div>
+				<div  class="ui-block-d" id="kontainer-btn-24"><button class="clickable" id="btn-24">24</button></div>
+				<div  class="ui-block-e" id="kontainer-btn-25"><button class="clickable" id="btn-25">25</button></div>
+			</div>
+		</div>
+		
+		<div data-role="footer">
+			<h2>Score: <span id="scoreLabel">-/-</span></h2>
+		</div>
+	</div>
+	
+	<script>
+		clearInterval(updaterFlag);
+		var MYTURN = <%= turn %>
+			,CURRENT = 0
+			,ACTION = "<%= action %>"
+			,GAMEID = "<%= gid %>"
+			,TOTAL = <%= total %>
+			,LABEL = " span.ui-btn-text"
+			,str = '{"values": [<%= bingo.values %>], "lines": <%= bingo.lines %>}'
+			,BINGO = JSON.parse(str)
+			,SERVER = <%= server %>
+			,socket;
+		
+		function updateView(values){
+			var i = 0,
+				temp = "X";
+			
+			for (;i<TOTAL; i++){
+				temp = values[i] == 0 ? "X" : values[i]
+				$("#kontainer-btn-" + (i+1) + LABEL).text(temp);
+			}
+		}
+		function isTurn(){
+			return CURRENT == MYTURN;
+		}
+		function update(){
+			updateView(BINGO.values);
+		}
+		$(document).bind('pageinit', function(){
+			$(".clickable").bind('click', function(){
+				if (isTurn()){
+					var id = this.id.split("-")
+						,number = id[1]
+						,selector = "#kontainer-" + id[0] + "-" + id[1] + LABEL;
+					
+					BINGO.values[number-1] = 0;
+					update();
+					
+					//Send update to server
+					
+				}
+			});
+			$(window).bind('beforeunload', function(){
+				return "Are you sure wanna abort the game?";
+			});
+			// websocket
+			socket = io.connect('http://localhost:8080');
+			console.log("socket", socket);
+			socket.on('update', function(){
+				
+			});
+			socket.send(ACTION + "::" + GAMEID);
+			update();
+		});
+	</script>
+</body>
+</head>
