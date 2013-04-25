@@ -6,10 +6,13 @@
 	<title>Bingo</title>
 	<link rel="stylesheet" href="<%= server %>style/jquery-ui.css">
 	<link rel="stylesheet" href="<%= server %>style/bingo.css">
+	<link rel="stylesheet" href="<%= server %>style/jquery.notifyBar.css">
+	
 	<script src="<%= server %>js/jquery.js"></script>
 	<script src="<%= server %>socket.io/socket.io.js"></script>
 	<script src="<%= server %>js/jquery-ui.js"></script>
 	<script src="<%= server %>js/util.js"></script>
+	<script src="<%= server %>js/jquery.notifyBar.js"></script>
 	<script>
 		const NUMBEROFPLAYER = 2;
 		const TOTALSCORE = 5;
@@ -75,7 +78,7 @@
 				$( "#start" ).button({ text: false, icons: { primary: "ui-icon-seek-start" }});
 				$( "#prev" ).button({ text: false, icons: { primary: "ui-icon-seek-prev" }});
 				$( "#next" ).button({ text: false, icons: { primary: "ui-icon-seek-next" }});
-				$( "#goto" ).button({ text: false, icons: { primary: "ui-icon-search" }});
+				$( "#invite" ).button({ text: false, icons: { primary: "ui-icon-search" }});
 			},
 			empty: function(){ $(this.selector).empty(); },
 			setDefault: function(){ $(this.selector).append(this.defaultEntry); },
@@ -230,9 +233,43 @@
 				gameBingo.status = 'end';
 			});
 		}
+		function cekEmail(email){
+			var valid = email.indexOf("@") > -1
+				, valid = valid && email.match(/[a-zA-Z0-9]+.[a-zA-Z0-9]+$/);
+			return valid;
+		}
 		
 		$(document).ready(function(){
 			$('.button').button();
+			$('#invite').bind('click', function(){
+				var email = $.trim($("#invite-email").val());
+
+				if (cekEmail(email)){
+					$("#invite-email").val("");
+					$.notifyBar({
+						cssClass: 'common',
+						html: 'Sending invitation to server'
+					});
+					$.post('/invite', {email: email}, function(data){
+						if (data.status == 'ok'){
+							$.notifyBar({
+								cssClass: 'success',
+								html: data.msg
+							});
+						} else {
+							$.notifyBar({
+								cssClass: 'error',
+								html: data.msg
+							});
+						}
+					});
+				} else {
+					$.notifyBar({
+						cssClass: 'error',
+						html: 'It looks given email address is invalid'
+					});
+				}
+			});
 			$( "#menu" ).menu({ position: { my: "right bottom+130", at: "right" } });
 			$( "#chpasswd-dialog" ).dialog({
 				autoOpen: false,
@@ -301,17 +338,19 @@
 			</ul>
 		</li>
 	</ul>
-	<div class="listing-game">
-		<button id="create-game" class="button">Create a new bingo</button>
-		<div id="listing-nav" class="ui-widget-header ui-corner-all">
-			<button id="start">start</button>
-			<button id="prev">previous</button>
-			<button id="next">next</button>
-			<label class="inline">page</label>
-			<input type="text" class="inline"></input>
-			<button id="goto">Go to</button>
+	<div>
+		<div class="listing-game">
+			<button id="create-game" class="button">Create a new bingo</button>
+			<div id="listing-nav" class="ui-widget-header ui-corner-all">
+				<button id="start">start</button>
+				<button id="prev">previous</button>
+				<button id="next">next</button>
+				<label class="inline">email</label>
+				<input type="text" id="invite-email" class="inline ui-corner-all ui-widget-content" placeholder="email to invite"></input>
+				<button id="invite" class="inline">Invite</button>
+			</div>
+			<ul id="listing-game"></ul>
 		</div>
-		<ul id="listing-game"></ul>
 	</div>
 	<div id="chpasswd-dialog" title="Change Password">
 		<fieldset class="kontainer">

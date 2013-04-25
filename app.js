@@ -9,13 +9,16 @@ var express = require('express')
 	, tokenizer = require('./controllers/tokenizer')
 	, message = require('./models/message')
 	, Kontainer = require('./models/kontainer')
-	, common = require('./common');
+	, common = require('./common')
+	, mailer = require('./controllers/mailhandler');
 
 // Global constant
 const GAME_PER_PAGE = 5
 	,PORT = (process.env.VMC_APP_PORT || 3000)
 	,HOST = (process.env.VMC_APP_HOST || 'localhost')
-	,SERVER = '/'
+	,OUTERHOST = 'localhost'
+	,OUTERPORT = ':3000'
+	,SERVER = 'http://' + OUTERHOST + OUTERPORT + "/"
 	,NUMBEROFPLAYER = 2
 	,BINGOLINES = 5;
 
@@ -55,6 +58,10 @@ app.configure(function(){
 	app.use(passport.session());
 	app.use(express.static(__dirname + '/public'));
 	app.use(app.router);
+	app.use(function(req, res){
+		res.status(404);
+		res.send('{error: definitely, msg: You should not be here}');
+	});
 });
 
 // Miscellaneous functions (utilities)
@@ -213,7 +220,7 @@ app.get('/login', function( req, res ){
 		res.redirect('/bingo');
 	},
 	function(){
-		res.sendfile('./public/login.html');
+		res.render('login', {message: 'All fields are required'});
 	});
 });
 
@@ -254,8 +261,76 @@ app.get('/quit/:gid', function(req, res){
 	});
 });
 
+app.get('/signup/:signupkey', function(req, res){
+	var signupkey = req.params.signupkey;
+	
+	db.getInvitation(signupkey, function(err, data){
+		if (data){
+			res.render('signup', {message: 'All fields are required', server: SERVER, signupkey: signupkey});
+		} else {
+			res.redirect('/login');
+		}
+	});
+});
+
 // Post Method
-app.post('/login',
+app.post('/invite', function(req, res){
+	
+	ensureAuthenticated(req,
+	function(){
+		var email = req.body.email
+			,invitekey = tokenizer.nextToken(10)
+			,user = req.session.passport.user
+			,invitation = {key: invitekey, by: user, active: true}
+			,url = SERVER + "signup/" + invitekey
+			,mailOptions = {
+				to: email,
+				html: "Dear Friend,<br><br>One of your friend, " + req.session.name + ", invite you to join to Bingo<br>You can follow this link <a href='" + url + "'>Bingo Registration</a>" 
+			}
+			,invitationFunc = function(err, data){
+					if (err){
+						common.sendJSONResponse(res, message.getServerErrorMsg());
+					} else {
+						mailer.sendMail(mailOptions, function(err, data){
+							if (err){
+								common.sendJSONResponse(res, message.getServerErrorMsg());
+							} else {
+								common.sendJSONResponse(res, message.getInvitationSendMsg());
+							}
+						});
+					}
+				}
+		
+		db.getInvitationByUser(user, function(err, data){
+			if (err){
+				common.sendJSONResponse(res, message.getServerErrorMsg());
+			} else {
+				if (data){
+					data.toArray(function(err, list){
+						if (err) {
+							common.sendJSONResponse(res, message.getServerErrorMsg());
+						} else {
+							var total = list.length;
+							
+							if (total < req.session.limit){
+								db.addInvitation(invitation, invitationFunc);
+							} else {
+								common.sendJSONResponse(res, message.getInvitationLimitMsg());
+							}
+						}
+					});
+				} else {
+					db.addInvitation(invitation, invitationFunc);
+				}
+			}
+		});
+	},
+	function(){
+		res.redirect('/login');
+	});
+});
+
+app.post('/login', 
 	passport.authenticate('local', { failureRedirect: '/' }),
 	function(req, res){
 		passport.deserializeUser(req.session.passport.user,
@@ -263,12 +338,12 @@ app.post('/login',
 				req.session.name = result.name;
 				req.session.email = result.email;
 				req.session.password = result.password;
+				req.session.limit = result.limit
 				res.redirect('/bingo');
 			});
 	});
 
-app.post('/password',
-	function( req, res ){
+app.post('/password', function( req, res ){
 		ensureAuthenticated( req,
 		function(){
 			var opasswd = req.body.opassword
@@ -290,15 +365,31 @@ app.post('/signup', function( req, res ){
 	var body = req.body
 		, valid = reqValidator.isCreatePlayerReq( req )
 		, result = message.getDefaultErrorMsg();
-	
+
 	if (valid){
-		db.addPlayer(tokenizer.nextToken(15), body.name, body.email, body.password, function(err, data){
+		var pemain = {email: body.email}
+			,signupkey = body.signupkey;
+		console.log('1');
+		db.getPlayer(pemain, function(err, result){
+			console.log('2', err);
+			console.log('3', result);
 			if (err){
-				result = message.getServerErrorMsg();
+				common.sendJSONResponse(res, message.getServerErrorMsg());
+			} else if (result){
+				common.sendJSONResponse(res, message.getEmailRegisteredMsg());
 			} else {
-				result = message.getDefaultOkMsg();
+				console.log('4');
+				db.addPlayer(tokenizer.nextToken(15), body.name, body.email, body.password, function(err, data){
+					if (err){
+						result = message.getServerErrorMsg();
+					} else {
+						result = message.getSignupMsg();
+						db.updateInvitation(signupkey);
+					}
+					console.log('5');
+					common.sendJSONResponse(res, result);
+				});
 			}
-			common.sendJSONResponse(res, result);
 		});
 	} else {
 		common.sendJSONResponse(res, result);

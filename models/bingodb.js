@@ -26,13 +26,37 @@ function generate_mongo_url(obj){
 
 exports.mongodb = require('mongodb');
 exports.dbObj = {host: 'localhost', port: 27017, name: 'bingodb'};
-exports.collections = ['pemain', 'permainan'];
+exports.collections = ['pemain', 'permainan', 'invitation'];
 
 var instance = null
 	,connection = null;
 
+exports.addInvitation = function(invitation, callback){
+	exports.insert(2, invitation, callback);
+};
+
+exports.getInvitation = function(key, callback){
+	var invitation = {key: key, active: true};
+
+	exports.selectOne(2, invitation, callback);
+};
+
+exports.updateInvitation = function(key, callback){
+	var where = {key: key}
+		invitation = {active: false};
+	
+	exports.update(2, invitation, where, callback);
+}
+
+exports.getInvitationByUser = function(user, callback){
+	var invitation = {by: user}
+		,option = {};
+	
+	exports.selectAdvance(2, invitation, option, callback);
+}
+
 exports.addPlayer = function(pid, name, email, password, callback){
-	var pemain = {_id: pid, name: name, email: email, password: password}
+	var pemain = {_id: pid, name: name, email: email, password: password, limit: 5}
 		, index = 0;
 	
 	exports.insert(index, pemain, callback);

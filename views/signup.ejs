@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Login Bingo</title>
+	<link rel="stylesheet" href="<%= server %>style/jquery-ui.css">
+	<link rel="stylesheet" href="<%= server %>style/bingo.css">
+
+	<script src="<%= server %>js/jquery.js"></script>
+	<script src="<%= server %>js/jquery-ui.js"></script>
+	<script>
+		function showError(id, msg){
+			$("#" + id).html("<p class='widget-title error-msg ui-state-error ui-corner-all ui-widget-header'>" + msg + '</p>');
+		}
+		function showMsg(id, msg){
+			$("#" + id).html('<p class="widget-title ui-state-highlight ui-corner-all ui-widget-header">' + msg + '</p>');
+		}
+		function cekEmail(email){
+			var valid = email.indexOf("@") > -1
+				, valid = valid && email.match(/[a-zA-Z0-9]+.[a-zA-Z0-9]+$/);
+			return valid;
+		}
+		$(document).ready(function(){
+			$('.button').button();
+			
+			$("#submit-btn").bind('click', function(){
+				var email = $.trim($("#email-su").val())
+					, name = $.trim($("#name-su").val())
+					, password = $.trim($("#password-su").val())
+					, passconfirm = $.trim($("#passconfirm").val())
+					, flag = false
+					, valid = email.length > 0 && name.length > 0 && password.length  > 0 && passconfirm.length > 0;
+				
+				if (!valid){
+					showError("reg-flash-msg", "Please fill all fields");
+				} else {
+					if (!cekEmail(email)){
+						showError("reg-flash-msg", "It seems your email is not in well format");
+					} else {
+						if (passconfirm != password){
+							showError("reg-flash-msg", "Password does not match");
+						} else {
+							var postData = {
+								email: email,
+								name: name,
+								password: password
+								signupkey: <%= signupkey %>
+							}
+							$.post('/signup', postData, function(resultObj){
+								//console.log('result', resultObj);
+								if (resultObj.status == 'ok'){
+									$("#signup-dialog").dialog( "close" );
+									showMsg('flash-msg', resultObj.msg);
+								} else {
+									showError('reg-flash-msg', resultObj.msg);
+								}
+							});
+						}
+					}
+				}
+				return flag;
+			});
+			
+		});
+	</script>
+</head>
+<body>
+	<div id="signup-dialog" title="Create new Bingoer">
+		<form action="signup" method="post">
+			<fieldset class="kontainer center">
+				<div id="reg-flash-msg" class="message">
+					<p class="widget-title ui-state-highlight ui-corner-all ui-widget-header"><%= message %></p>
+				</div>
+				<label for="email-su">Email</label>
+				<input type="text" name="email" id="email-su" class="text ui-widget-content ui-corner-all" />
+				<label for="name-su">Name</label>
+				<input type="text" name="name" id="name-su" class="text ui-widget-content ui-corner-all" />
+				<label for="password-su">Password</label>
+				<input type="password" id="password-su" name="password" class="text ui-widget-content ui-corner-all" />
+				<label for="passconfirm">Password Again</label>
+				<input type="password" id="passconfirm" name="passconfirm" class="text ui-widget-content ui-corner-all" />
+				<input type="Submit" value="Register" id="submit-btn" class="button"/>
+			</fieldset>
+		</form>
+	</div>
+</body>
+</html>

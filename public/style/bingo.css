@@ -20,6 +20,11 @@ input.text{ width: 95%; padding: .4em; }
 	padding: 0;
 	width: 450px;
 }
+#invitation-section{
+	margin: .1em 0;
+	padding: .1em;
+	width: 350px;
+}
 #listing-game{
 	list-style-type: none;
 	margin: .4em;

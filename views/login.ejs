@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Login Bingo</title>
+	<link rel="stylesheet" href="style/jquery-ui.css">
+	<link rel="stylesheet" href="style/bingo.css">
+
+	<script src="js/jquery.js"></script>
+	<script src="js/jquery-ui.js"></script>
+	<script>
+		function showError(id, msg){
+			$("#" + id).html("<p class='widget-title error-msg ui-state-error ui-corner-all ui-widget-header'>" + msg + '</p>');
+		}
+		function showMsg(id, msg){
+			$("#" + id).html('<p class="widget-title ui-state-highlight ui-corner-all ui-widget-header">' + msg + '</p>');
+		}
+		function cekEmail(email){
+			var valid = email.indexOf("@") > -1
+				, valid = valid && email.match(/[a-zA-Z0-9]+.[a-zA-Z0-9]+$/);
+			return valid;
+		}
+		$(document).ready(function(){
+			$('.button').button();
+			/*$("#signup-dialog").dialog({
+				autoOpen: false,
+				width: 350,
+				modal: true,
+				buttons:{
+					Cancel: function(){
+						$( this ).dialog( "close" );
+					}
+				},
+				close: function(){
+					
+				}
+			});
+			
+			$("#submit-btn").bind('click', function(){
+				var email = $.trim($("#email-su").val())
+					, name = $.trim($("#name-su").val())
+					, password = $.trim($("#password-su").val())
+					, passconfirm = $.trim($("#passconfirm").val())
+					, flag = false
+					, valid = email.length > 0 && name.length > 0 && password.length  > 0 && passconfirm.length > 0;
+				
+				if (!valid){
+					showError("reg-flash-msg", "Please fill all fields");
+				} else {
+					if (!cekEmail(email)){
+						showError("reg-flash-msg", "It seems your email is not in well format");
+					} else {
+						if (passconfirm != password){
+							showError("reg-flash-msg", "Password does not match");
+						} else {
+							var postData = {
+								email: email,
+								name: name,
+								password: password
+							}
+							$.post('/signup', postData, function(resultObj){
+								
+								if (resultObj.status == 'ok'){
+									$("#signup-dialog").dialog( "close" );
+									showMsg('flash-msg', resultObj.msg);
+								} else {
+									showError('reg-flash-msg', resultObj.msg);
+								}
+							});
+							//flag = true;
+						}
+					}
+				}
+				return flag;
+			});*/
+			
+			$("#login-btn").bind('click', function(){
+				var valid = false
+					, email = $.trim($("#email").val())
+					, password = $.trim($("#password").val());
+				
+				valid = email.length > 0 && password.length > 0;
+				if (!valid){
+					showError("flash-msg", "Please fill username and password");
+				} else {
+					valid = cekEmail(email);
+					if (!valid){
+						showError("flash-msg", "It seems your email is not in well format");
+					}
+				}
+				return valid;
+			});
+			
+			$("#create-user").click(function(){
+				//$( "#signup-dialog" ).dialog( "open" );
+				showError("flash-msg", "Register by invitation only");
+			});
+		});
+	</script>
+</head>
+<body>
+
+<div id="main-kontainer">
+	<div id="header-page">
+	
+	</div>
+	<div id="content-page">
+		<fieldset class="kontainer center">
+			<div id="flash-msg" class="message">
+				<p class="widget-title ui-state-highlight ui-corner-all ui-widget-header">All fields are required</p>
+			</div>
+			<h2 class="ui-widget-header widget-title ui-corner-all">Login to Play Bingo</h2>
+			<form action="login" method="post">
+				<label for="email">Email</label>
+				<input type="text" id="email" name="email" class="text ui-widget-content ui-corner-all"/>
+				<label for="password">Password</label>
+				<input type="password" id="password" name="password"  class="text ui-widget-content ui-corner-all">
+				<button id="login-btn"  class="button">Login</button>
+			</form>
+			<!--<p>Don't have account yet? Free to <button class="button" id="create-user">register</button></p>-->
+		</fieldset>
+		
+		<!--<div id="signup-dialog" title="Create new Bingoer">
+			<div id="reg-flash-msg" class="message">
+				<p class="widget-title ui-state-highlight ui-corner-all ui-widget-header"><%= message %></p>
+			</div>
+			<form action="signup" method="post">
+				<fieldset class="kontainer center">
+					<label for="email-su">Email</label>
+					<input type="text" name="email" id="email-su" class="text ui-widget-content ui-corner-all" />
+					<label for="name-su">Name</label>
+					<input type="text" name="name" id="name-su" class="text ui-widget-content ui-corner-all" />
+					<label for="password-su">Password</label>
+					<input type="password" id="password-su" name="password" class="text ui-widget-content ui-corner-all" />
+					<label for="passconfirm">Password Again</label>
+					<input type="password" id="passconfirm" name="passconfirm" class="text ui-widget-content ui-corner-all" />
+					<input type="Submit" value="Register" id="submit-btn" class="button"/>
+				</fieldset>
+			</form>
+		</div>-->
+	</div>
+	
+	<div id="footer-page">
+	
+	</div>
+</div>
+</body>
+</html>
