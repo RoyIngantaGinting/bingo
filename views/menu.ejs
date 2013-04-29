@@ -240,37 +240,39 @@
 				, valid = valid && email.match(/[a-zA-Z0-9]+.[a-zA-Z0-9]+$/);
 			return valid;
 		}
+		function sendInvite(email){
+			if (cekEmail(email)){
+				$("#invite-email").val("");
+				$.notifyBar({
+					cssClass: 'common',
+					html: 'Sending invitation to server'
+				});
+				$.post('/invite', {email: email}, function(data){
+					if (data.status == 'ok'){
+						$.notifyBar({
+							cssClass: 'success',
+							html: data.msg
+						});
+					} else {
+						$.notifyBar({
+							cssClass: 'error',
+							html: data.msg
+						});
+					}
+				});
+			} else {
+				$.notifyBar({
+					cssClass: 'error',
+					html: 'It looks given email address is invalid'
+				});
+			}
+		}
 		
 		$(document).ready(function(){
 			$('.button').button();
 			$('#invite').bind('click', function(){
 				var email = $.trim($("#invite-email").val());
-
-				if (cekEmail(email)){
-					$("#invite-email").val("");
-					$.notifyBar({
-						cssClass: 'common',
-						html: 'Sending invitation to server'
-					});
-					$.post('/invite', {email: email}, function(data){
-						if (data.status == 'ok'){
-							$.notifyBar({
-								cssClass: 'success',
-								html: data.msg
-							});
-						} else {
-							$.notifyBar({
-								cssClass: 'error',
-								html: data.msg
-							});
-						}
-					});
-				} else {
-					$.notifyBar({
-						cssClass: 'error',
-						html: 'It looks given email address is invalid'
-					});
-				}
+				sendInvite(email);
 			});
 			$( "#menu" ).menu({ position: { my: "right bottom+130", at: "right" } });
 			$( "#chpasswd-dialog" ).dialog({
@@ -323,6 +325,13 @@
 						socket.emit('create', jalur);
 					} catch (err){ console.log('create error', JSON.stringify(err)); }
 				});
+			});
+			$('#invite-email').keypress(function(event){
+				if (event.keyCode == 13){
+					event.preventDefault();
+					var email = $.trim($("#invite-email").val());
+					sendInvite(email);
+				}
 			});
 			view.decorateListingNav();
 			game.startUpdate();
