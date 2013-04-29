@@ -26,7 +26,7 @@
                     settings.onShow.call();
                 }
             });
-        }
+        };
 
         this.fn.hideNB = function (delayed) {
             if(typeof settings.onBeforeHide == 'function') {
@@ -49,7 +49,7 @@
 
                 }
             });
-        }
+        };
 
         var bar = {};
         var rand = parseInt(Math.random() * 100000000);
@@ -85,7 +85,6 @@
 
         bar.html(text_wrapper).hide();
 
-        var id = bar.attr("id");
         switch (settings.animationSpeed) {
             case "slow":
                 asTime = 600;

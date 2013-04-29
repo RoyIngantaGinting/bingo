@@ -224,7 +224,9 @@
 			socket.on('end-' + jalur, function(msg){
 				var msgObject = JSON.parse(msg);
 				
-				if (gameBingo.turn == msgObject.winner){
+				console.log('game', gameBingo);
+				console.log('msg', msgObject);
+				if (gameBingo.turn == msgObject.turn){
 					bingoView.setStatus('You win');
 				} else {
 					bingoView.setStatus('You lose');
@@ -338,9 +340,9 @@
 			</ul>
 		</li>
 	</ul>
-	<div>
+	<div class="center listing-kontainer">
 		<div class="listing-game">
-			<button id="create-game" class="button">Create a new bingo</button>
+			<button id="create-game" class="button">Create a new game</button>
 			<div id="listing-nav" class="ui-widget-header ui-corner-all">
 				<button id="start">start</button>
 				<button id="prev">previous</button>

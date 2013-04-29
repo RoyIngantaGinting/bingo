@@ -27,7 +27,7 @@ passport.serializeUser(function(user, done) {
 });
 
 passport.deserializeUser(function(id, done){
-	var pemain = {_id: id};
+	var pemain = { _id: id, };
 	
 	db.getPlayer(pemain, function(err, result){
 		done(err, result);
@@ -66,8 +66,7 @@ app.configure(function(){
 
 // Miscellaneous functions (utilities)
 function authenticate(username, password, fn){
-	var hash = require('sha1')
-		, pemain = {email: username, password: password};
+	var pemain = {email: username, password: password};
 	
 	db.getPlayer(pemain, function(err, result){
 		if (err) { return fn(err); }
@@ -116,10 +115,10 @@ app.get('/create', function( req, res ){
 		
 		var pemain = { pid: req.session.passport.user,
 					name: req.session.name,
-					bingo: stat.minimize()
-					,path: tokenizer.nextToken(10)
-				}
-			,info = [pemain, {}];
+					bingo: stat.minimize(),
+					path: tokenizer.nextToken(10),
+				},
+			info = [pemain, {}];
 		
 		db.createGame(gid, info, function(err){
 			if (err){
@@ -413,13 +412,15 @@ io.sockets.on('connection', function(socket){
 							var line = 'end-' + game._id + '-' + game.info[winner].path,
 								winning = {action: 'end', winner: winner, reason: 'Your foe quit'};
 							
+							console.log('win1', winning);
 							if (err) throw err;
+							console.log('win', winning);
 							socket.broadcast.emit(line, JSON.stringify(winning));
 							db.updateGame(flags[0], update);
 						}
-					} catch (newerr){}
+					} catch (newerr){ console.log('2', patherr); }
 				});
-			} catch (patherr){}
+			} catch (patherr){ console.log('1', patherr); }
 		});
 	}
 	socket.on('create', function(room){
@@ -518,4 +519,4 @@ io.sockets.on('connection', function(socket){
 	});
 });
 
-server.listen(PORT, HOST);
+server.listen(PORT, '0.0.0.0');

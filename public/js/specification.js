@@ -21,7 +21,7 @@
 		
 		this.getBackSlash = function(){
 			return this.getDiagonal(this.backSlash);
-		}
+		},
 		
 		this.getDiagonal = function(slash){
 			var i = 0, result = new Array();
@@ -39,16 +39,16 @@
 		this.adjustValues = function(tab, index, multiplier){
 			var i = 0, limit = tab.length,
 				result = new Array(), temp,
-				multiplier = index * multiplier;
+				multiply = index * multiplier;
 			
 			if (index >=0 && index < limit){
 				for (;i<limit; i++){
-					temp = tab[i] + multiplier;
+					temp = tab[i] + multiply;
 					result.push(temp);
 				}
 			}
 			return result;
-		}
+		};
 	}
 	
 	var spec = Specification;

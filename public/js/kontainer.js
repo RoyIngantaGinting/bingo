@@ -4,8 +4,7 @@ function Kontainer(){
 	this.numberOfLines = 0;
 	
 	this.generate = function(){
-		var i = 1, limit = this.spec.size * this.spec.size,
-			temp = new Array();
+		var i = 1, limit = this.spec.size * this.spec.size;
 		
 		for (;i<=limit; i++){
 			this.tab[i-1] = i;
@@ -22,7 +21,6 @@ function Kontainer(){
 	},
 	
 	this.markByIndex = function(index){
-		var lines;
 		
 		if (!this.spec.isMarked( this.tab[index] )){
 			this.tab[index] = this.spec.marker;
@@ -138,5 +136,5 @@ function Kontainer(){
 	
 	this.toString = function(){
 		return this.serialize();
-	}
+	};
 }

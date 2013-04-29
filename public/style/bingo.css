@@ -1,6 +1,6 @@
 /*HTML entity*/
 a{ text-decoration: none; }
-body{ margin: .1em; background: #f0f0ff; }
+body{ margin: .1em; background: #ffffff; }
 input, label { display: block; }
 
 /*Mix Selector*/
@@ -64,6 +64,8 @@ input.text{ width: 95%; padding: .4em; }
 	cursor: pointer;
 }
 .error-msg{ color: red; }
+.footer-text { width: 110px; padding: .2em; margin-right: 0; margin-left: auto}
+.header-text{ width: 375px; padding: .3em}
 .inline{ display: inline; }
 .kontainer{ width: 280px; border-radius: 15px; }
 .label-info{ padding: .2em; font-size: 1em; }
@@ -72,12 +74,17 @@ input.text{ width: 95%; padding: .4em; }
 .list-game{ padding: .2em; }
 .listing-game{
 	width: 350px;
+}
+.listing-kontainer{
+	width: 360px;
+	margin-top: 3em;
+	padding: 1em; 
 	border-radius: 15px;
 	border: solid 1px #C0C0C0;
 }
 .menu-awal{
-	margin-right: 0;
-	margin-left: auto;
+	margin-right: auto;
+	margin-left: 0;
 	width: 250px;
 }
 .message{
@@ -85,6 +92,14 @@ input.text{ width: 95%; padding: .4em; }
 	font-size: 12pt;
 	font-weight: bold;
 	color: #aaff00;
+}
+.title-big{
+	padding: .1em;
+	font-size: 21pt;
+}
+.block-color{
+	color: #ffffff;
+	background: #000000;
 }
 .ui-menu { width: 250px; }
 .widget-title{ text-align: center; }

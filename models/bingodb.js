@@ -11,7 +11,7 @@ function get_mongo_credentials(){
 	}
 	return mongo;
 }
-/*
+
 function generate_mongo_url(obj){
 	obj.hostname = (obj.hostname || 'localhost');
 	obj.port = (obj.port || 27017);
@@ -22,7 +22,7 @@ function generate_mongo_url(obj){
 	} else {
 		return "mongodb://" + obj.hostname + ":" + obj.port + "/" + obj.db;
 	}
-}*/
+}
 
 exports.mongodb = require('mongodb');
 exports.dbObj = {host: 'localhost', port: 27017, name: 'bingodb'};
@@ -236,6 +236,7 @@ exports.getDbInstance = function(){
 exports.templateOperation = function(collectionName, operation, callback){
 	exports.getDbInstance();
 	
+	exports.bingodb.connect()
 	if (connection == null){
 		instance.open(function(err, db){
 			connection = db;
