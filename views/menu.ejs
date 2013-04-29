@@ -226,7 +226,8 @@
 				
 				console.log('game', gameBingo);
 				console.log('msg', msgObject);
-				if (gameBingo.turn == msgObject.winner){
+				var winner = (msgObject.winner || msgObject.turn);
+				if (gameBingo.turn == winner){
 					bingoView.setStatus('You win');
 				} else {
 					bingoView.setStatus('You lose');

@@ -47,6 +47,9 @@ var app = express()
 	, io = sio.listen(server);
 	
 // Modules configuration
+io.configure('development', function(){
+	io.set('transports', ['xhr-polling']);
+});
 app.configure(function(){
 	app.set('views', __dirname + '/views');
 	app.set('view engine', 'ejs');
