@@ -236,7 +236,6 @@ exports.getDbInstance = function(){
 exports.templateOperation = function(collectionName, operation, callback){
 	exports.getDbInstance();
 	
-	exports.bingodb.connect()
 	if (connection == null){
 		instance.open(function(err, db){
 			connection = db;
