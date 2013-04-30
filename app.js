@@ -15,9 +15,9 @@ var express = require('express')
 // Global constant
 const GAME_PER_PAGE = 5
 	,PORT = (process.env.VMC_APP_PORT || 3000)
-	,HOST = (process.env.VMC_APP_HOST || 'localhost')
-	,OUTERHOST = 'bingo.dnsd.info'
-	,OUTERPORT = ''
+	,HOST = (process.env.VMC_APP_HOST || '0.0.0.0')
+	,OUTERHOST = 'localhost'
+	,OUTERPORT = ':3000'
 	,SERVER = 'http://' + OUTERHOST + OUTERPORT + "/"
 	,NUMBEROFPLAYER = 2
 	,BINGOLINES = 5;
@@ -519,4 +519,4 @@ io.sockets.on('connection', function(socket){
 	});
 });
 
-server.listen(PORT, '0.0.0.0');
+server.listen(PORT, HOST);

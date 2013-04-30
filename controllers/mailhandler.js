@@ -1,11 +1,6 @@
-var nodemailer = require('nodemailer');
-var smtpTransport = nodemailer.createTransport("SMTP",{
-    service: "Gmail",
-    auth: {
-        user: "",
-        pass: ""
-    }
-});
+var nodemailer = require('nodemailer')
+	,transportOption = require('../config').getMailCredential();
+var smtpTransport = nodemailer.createTransport("SMTP", transportOption);
 
 exports.sendMail = function(mailOptions, callback){
 	mailOptions.from = (mailOptions.from || 'royingantaginting@gmail.com');

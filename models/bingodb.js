@@ -2,28 +2,6 @@
  * Bingo mongo db operation
  */
 
-function get_mongo_credentials(){
-	if (process.env.VCAP_SERVICES){
-		var env = JSON.parse(process.env.VCAP_SERVICES);
-		var mongo = env['mongodb-1.8'][0]['credentials'];
-	} else {
-		var mongo = {hostname: 'localhost', port: 27017, db: 'bingodb'};
-	}
-	return mongo;
-}
-
-function generate_mongo_url(obj){
-	obj.hostname = (obj.hostname || 'localhost');
-	obj.port = (obj.port || 27017);
-	obj.db = (obj.db || 'bingodb');
-	
-	if (obj.username && obj.password){
-		return "mongodb://" + obj.username + ":" + obj.password + "@" + obj.hostname + ":" + obj.port + "/" + obj.db;
-	} else {
-		return "mongodb://" + obj.hostname + ":" + obj.port + "/" + obj.db;
-	}
-}
-
 exports.mongodb = require('mongodb');
 exports.dbObj = {host: 'localhost', port: 27017, name: 'bingodb'};
 exports.collections = ['pemain', 'permainan', 'invitation'];
@@ -216,7 +194,9 @@ exports.update = function(index, data, where, callback){
  */
 // get a new database transport. Should only be used internally.
 exports.getDbInstance = function(){
-	var mongo = get_mongo_credentials();
+	var config = require('../config'),
+		mongo = config.getDBCredential();
+		
 	var server = new exports.mongodb.Server(
 			mongo.hostname,
 			mongo.port,
