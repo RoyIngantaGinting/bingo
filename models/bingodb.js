@@ -2,7 +2,7 @@
  * Bingo mongo db operation
  */
 
-exports.mongodb = require('mongodb');
+exports.mongodb = require('mongoskin');
 exports.dbObj = {host: 'localhost', port: 27017, name: 'bingodb'};
 exports.collections = ['pemain', 'permainan', 'invitation'];
 
@@ -194,8 +194,7 @@ exports.update = function(index, data, where, callback){
  */
 // get a new database transport. Should only be used internally.
 exports.getDbInstance = function(){
-	var config = require('../config'),
-		mongo = config.getDBCredential();
+	var mongo = require('../config').getDBCredential();
 		
 	var server = new exports.mongodb.Server(
 			mongo.hostname,
@@ -214,19 +213,33 @@ exports.getDbInstance = function(){
 	
 // Template operation against mongo db
 exports.templateOperation = function(collectionName, operation, callback){
-	exports.getDbInstance();
+	var mongo = require('../config').getDBCredential();
 	
+	exports.getDbInstance();
 	if (connection == null){
 		instance.open(function(err, db){
 			connection = db;
-			connection.collection(
-				collectionName
-				, { safe: true }
-				, function(err, collection)
-				{
-					operation(err, collection, connection);
-				}
-			);
+			if (mongo.username && mongo.password){
+				connection.authenticate(mongo.username, mongo.password, function(errauth, datauth){
+					connection.collection(
+						collectionName
+						, { safe: true }
+						, function(err, collection)
+						{
+							operation(err, collection, connection);
+						}
+					);
+				});
+			} else {
+				connection.collection(
+					collectionName
+					, { safe: true }
+					, function(err, collection)
+					{
+						operation(err, collection, connection);
+					}
+				);
+			}
 		});
 	} else {
 		connection.collection(

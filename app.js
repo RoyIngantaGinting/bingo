@@ -10,7 +10,8 @@ var express = require('express')
 	, message = require('./models/message')
 	, Kontainer = require('./models/kontainer')
 	, common = require('./common')
-	, mailer = require('./controllers/mailhandler');
+	, mailer = require('./controllers/mailhandler')
+	, sha1 = require('sha1');
 
 // Global constant
 const GAME_PER_PAGE = 5
@@ -69,10 +70,11 @@ app.configure(function(){
 
 // Miscellaneous functions (utilities)
 function authenticate(username, password, fn){
-	var pemain = {email: username, password: password};
+	var hpass = sha1(password),
+		pemain = {email: username, password: hpass};
 	
 	db.getPlayer(pemain, function(err, result){
-		if (err) { return fn(err); }
+		if (err) { return fn(err, false); }
 		if (!result){
 			return fn(null, false);
 		} else {
@@ -380,7 +382,7 @@ app.post('/signup', function( req, res ){
 				common.sendJSONResponse(res, message.getEmailRegisteredMsg());
 			} else {
 				
-				db.addPlayer(tokenizer.nextToken(15), body.name, body.email, body.password, function(err, data){
+				db.addPlayer(tokenizer.nextToken(15), body.name, body.email, sha1(body.password), function(err, data){
 					if (err){
 						result = message.getServerErrorMsg();
 					} else {

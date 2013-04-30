@@ -5,7 +5,8 @@ exports.getDBCredential = function(){
 		var mongo = env['mongodb-1.8'][0]['credentials'];
 	} else {
 		// localhost
-		var mongo = {hostname: 'localhost', port: 27017, db: 'bingodb'};
+		//var mongo = {hostname: 'localhost', port: 27017, db: 'bingodb'};
+		var mongo = {hostname: 'ds061757.mongolab.com', port: 61757, db: '', username: '', password: ''};
 	}
 	return mongo;
 };
