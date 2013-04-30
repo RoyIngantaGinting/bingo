@@ -241,6 +241,14 @@
 				, valid = valid && email.match(/[a-zA-Z0-9]+.[a-zA-Z0-9]+$/);
 			return valid;
 		}
+		function getValue(id){
+			return $.trim($('#' + id).val());
+		}
+		function showMessage(msg){
+			$('#message')
+				.addClass('span block-color widget-title error-msg ui-state-error ui-corner-all')
+				.text(msg);
+		}
 		function sendInvite(email){
 			if (cekEmail(email)){
 				$("#invite-email").val("");
@@ -272,7 +280,7 @@
 		$(document).ready(function(){
 			$('.button').button();
 			$('#invite').bind('click', function(){
-				var email = $.trim($("#invite-email").val());
+				var email = getValue('invite-email');
 				sendInvite(email);
 			});
 			$( "#menu" ).menu({ position: { my: "right bottom+130", at: "right" } });
@@ -304,6 +312,31 @@
 			$( "#chpasswd-btn" ).click(function(){
 				$( "#chpasswd-dialog" ).dialog( "open" );
 			});
+			$('#cpasswd-btn').click(function(){
+				var opass = getValue('opassword'),
+					npass = getValue('npassword'),
+					cpass = getValue('cpassword'),
+					flag = false;
+
+				if (npass == cpass){
+					var dataChpasswd = {
+						opassword: opass,
+						npassword: npass,
+						cpassword: cpass
+					}
+					$.post('/password', dataChpasswd, function(msgObject){
+						if (msgObject.status == 'ok'){
+							$('#chpasswd-dialog').dialog('close');
+							$.notifyBar({cssClass: 'success', html: msgObject.msg});
+						} else {
+							showMessage(msgObject.msg);
+						}
+					});
+				} else {
+					showMessage('New Password does not match');
+				}
+				return flag;
+			});
 			$( "#create-game" ).click(function(){
 				$.get('/create', function(data){
 					try {
@@ -330,7 +363,7 @@
 			$('#invite-email').keypress(function(event){
 				if (event.keyCode == 13){
 					event.preventDefault();
-					var email = $.trim($("#invite-email").val());
+					var email = getValue('invite-email');
 					sendInvite(email);
 				}
 			});
@@ -365,8 +398,8 @@
 		</div>
 	</div>
 	<div id="chpasswd-dialog" title="Change Password">
+		<div id="message"></div>
 		<fieldset class="kontainer">
-			<div id="message" class="error-msg"></div>
 			<form method="post" action="/password">
 				<label for="opassword">Old Password</label>
 				<input type="password" id="opassword" name="opassword" class="text ui-widget-content ui-corner-all"/>
