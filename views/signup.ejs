@@ -44,14 +44,13 @@
 							var postData = {
 								email: email,
 								name: name,
-								password: password
-								signupkey: <%= signupkey %>
-							}
+								password: password,
+								signupkey: '<%= signupkey %>'
+							};
 							$.post('/signup', postData, function(resultObj){
 								//console.log('result', resultObj);
 								if (resultObj.status == 'ok'){
-									$("#signup-dialog").dialog( "close" );
-									showMsg('flash-msg', resultObj.msg);
+									document.location.href='/';
 								} else {
 									showError('reg-flash-msg', resultObj.msg);
 								}
@@ -67,7 +66,7 @@
 </head>
 <body>
 	<div id="signup-dialog" title="Create new Bingoer">
-		<form action="/" method="post">
+		<form action="/signup" method="post">
 			<fieldset class="kontainer center">
 				<div id="reg-flash-msg" class="message">
 					<p class="widget-title ui-state-highlight ui-corner-all ui-widget-header"><%= message %></p>

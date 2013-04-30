@@ -16,8 +16,8 @@ var express = require('express')
 const GAME_PER_PAGE = 5
 	,PORT = (process.env.VMC_APP_PORT || 3000)
 	,HOST = (process.env.VMC_APP_HOST || 'localhost')
-	,OUTERHOST = 'localhost'
-	,OUTERPORT = ':3000'
+	,OUTERHOST = 'bingo.dnsd.info'
+	,OUTERPORT = ''
 	,SERVER = 'http://' + OUTERHOST + OUTERPORT + "/"
 	,NUMBEROFPLAYER = 2
 	,BINGOLINES = 5;
@@ -47,6 +47,9 @@ var app = express()
 	, io = sio.listen(server);
 	
 // Modules configuration
+io.configure('development', function(){
+	io.set('transports', ['xhr-polling']);
+});
 app.configure(function(){
 	app.set('views', __dirname + '/views');
 	app.set('view engine', 'ejs');
@@ -368,16 +371,15 @@ app.post('/signup', function( req, res ){
 	if (valid){
 		var pemain = {email: body.email}
 			,signupkey = body.signupkey;
-		console.log('1');
+		
 		db.getPlayer(pemain, function(err, result){
-			console.log('2', err);
-			console.log('3', result);
+			
 			if (err){
 				common.sendJSONResponse(res, message.getServerErrorMsg());
 			} else if (result){
 				common.sendJSONResponse(res, message.getEmailRegisteredMsg());
 			} else {
-				console.log('4');
+				
 				db.addPlayer(tokenizer.nextToken(15), body.name, body.email, body.password, function(err, data){
 					if (err){
 						result = message.getServerErrorMsg();
@@ -385,7 +387,7 @@ app.post('/signup', function( req, res ){
 						result = message.getSignupMsg();
 						db.updateInvitation(signupkey);
 					}
-					console.log('5');
+					
 					common.sendJSONResponse(res, result);
 				});
 			}
@@ -412,9 +414,7 @@ io.sockets.on('connection', function(socket){
 							var line = 'end-' + game._id + '-' + game.info[winner].path,
 								winning = {action: 'end', winner: winner, reason: 'Your foe quit'};
 							
-							console.log('win1', winning);
 							if (err) throw err;
-							console.log('win', winning);
 							socket.broadcast.emit(line, JSON.stringify(winning));
 							db.updateGame(flags[0], update);
 						}

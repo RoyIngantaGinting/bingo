@@ -93,6 +93,7 @@ input.text{ width: 95%; padding: .4em; }
 	font-weight: bold;
 	color: #aaff00;
 }
+.span{ margin: 1em auto}
 .title-big{
 	padding: .1em;
 	font-size: 21pt;
